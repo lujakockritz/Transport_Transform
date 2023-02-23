@@ -1,5 +1,4 @@
 # coding=System
-from Agents import *
 from TransportAgent import *
 from UserAgent import *
 from config import *
@@ -12,16 +11,17 @@ import pandas as pd
 import random
 import networkx as nx
 
+
 class TransportTransformModel(Model):
 
-  """
-   
+    """
 
-  :version:
-  :author:
-  """
 
-  """ ATTRIBUTES
+    :version:
+    :author:
+    """
+
+    """ ATTRIBUTES
 
    
 
@@ -61,73 +61,68 @@ class TransportTransformModel(Model):
 
   """
 
-  def __init__(self):
-    """
-     
+    def __init__(self):
+        """
 
-    @return  :
-    @author
-    """
 
-    """
+        @return  :
+        @author
+        """
+
+        """
     call truncNormDistribute to initialize attitudes
 
     self.attitude.ICE == truncNormDistribute
     """
 
-  def create_network(self, N):
-    """
-     
-
-    @param  N : 
-    @return  :
-    @author
-    """
-    import mesa
-    from mesa import Model, Agent
-    from mesa.space import ContinuousSpace
-    
-    class NetworkModel(Model):
-        def __init__(self, N, width, height):
-            self.num_agents = N
-            self.grid = ContinuousSpace(width, height, True)
-            self.agents = [Agent(i, self) for i in range(self.num_agents)]
-    
-        def step(self):
-            for a in self.agents:
-                a.step()
-            self.connect_agents_by_distance()
-    
-        def connect_agents_by_distance(self):
-            for a in self.agents:
-                for b in self.agents:
-                    if a != b:
-                        (x1, y1) = a.position
-                        (x2, y2) = b.position
-                        dist = ((x1 - x2)**2 + (y1 - y2)**2)**0.5
-                        if dist <= 10:
-                            a.connect(b)
+    def create_network(self, N):
+        """
 
 
-  def invest(self):
-    """
-     
+        @param  N : 
+        @return  :
+        @author
+        """
+        import mesa
+        from mesa import Model, Agent
+        from mesa.space import ContinuousSpace
 
-    @return  :
-    @author
-    """
-    pass
+        class NetworkModel(Model):
+            def __init__(self, N, width, height):
+                self.num_agents = N
+                self.grid = ContinuousSpace(width, height, True)
+                self.agents = [Agent(i, self) for i in range(self.num_agents)]
 
-  def step(self):
-    """
-     
+            def step(self):
+                for a in self.agents:
+                    a.step()
+                self.connect_agents_by_distance()
 
-    @return  :
-    @author
-    """
-    # Advance Step Counter
-    self.currentStep += 1
+            def connect_agents_by_distance(self):
+                for a in self.agents:
+                    for b in self.agents:
+                        if a != b:
+                            (x1, y1) = a.position
+                            (x2, y2) = b.position
+                            dist = ((x1 - x2)**2 + (y1 - y2)**2)**0.5
+                            if dist <= 10:
+                                a.connect(b)
 
-  
+    def invest(self):
+        """
 
 
+        @return  :
+        @author
+        """
+        pass
+
+    def step(self):
+        """
+
+
+        @return  :
+        @author
+        """
+        # Advance Step Counter
+        self.currentStep += 1

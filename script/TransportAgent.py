@@ -2,16 +2,16 @@
 
 from mesa import Agent
 
+
 class TransportAgent(Agent):
 
-  """
-   
+    """
 
-  :version:
-  :author:
-  """
+    :version:
+    :author:
+    """
 
-  """ ATTRIBUTES
+    """ ATTRIBUTES
 
    
 
@@ -27,14 +27,11 @@ class TransportAgent(Agent):
 
   """
 
-  def __init__(self):
-    """
-     
-
-    @return  :
-    @author
-    """
-    pass
+    def __init__(self):
+        """
 
 
-
+        @return  :
+        @author
+        """
+        pass

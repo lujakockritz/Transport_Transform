@@ -60,4 +60,5 @@ dependencies:
   - parso
   - ipykernel
   - mesa
+  - scipy
 prefix: C:\Users\luja\Anaconda3\envs\TransportTransform
