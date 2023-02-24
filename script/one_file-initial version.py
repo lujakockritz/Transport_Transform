@@ -9,8 +9,12 @@ from scipy.stats import truncnorm
 
 """
 This script creates an agent-based model where user agents have an attitude towards varios transportation modes. 
-The model is initialized as a network where connection between group memebers are more likely than across group members.
+The attitudes are set based on mean and standard deviation calculated based on empirical data pblished in this study:
+Wolf, I., & Schröder, T. (2019). Connotative meanings of sustainable mobility: A segmentation approach using cultural sentiments. Transportation Research Part A: Policy and Practice, 126, 259–280. https://doi.org/10.1016/J.TRA.2019.06.002 
 
+The model is initialized as a network where connections between group memebers are more likely than across group members.
+Weights between agents are set based on similarity in their attitude using Euclidian Distance.
+ 
 """
 
 class UserAgent(Agent):
