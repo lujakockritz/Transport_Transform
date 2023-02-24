@@ -7,6 +7,9 @@ from mesa.visualization.ModularVisualization import ModularServer
 import numpy as np
 from scipy.stats import truncnorm
 
+"""
+This script creates and agent-based model
+"""
 
 class UserAgent(Agent):
     def __init__(self, unique_id, model, group, ice_mean, ice_std, pr_mean, pr_std):
@@ -26,7 +29,7 @@ class UserAgent(Agent):
         self.group = group
 
         # Initialize attitudes for transportation modes
-        self.ice_attitude = self.truncated_normal(ice_mean, ice_std, 0, 10)
+        self.ice_attitude = self.truncated_normal(ice_mean, ice_std, 0, 10)         #TODO: check if bounds are correct
         self.pr_attitude = self.truncated_normal(pr_mean, pr_std, 0, 10)
 
     def step(self):
@@ -58,7 +61,7 @@ class TransportTransform(Model):
     def __init__(
         self,
         num_agents,
-        el_prop=0.195,
+        el_prop=0.195,              #TODO: add this to a config section
         cp_prop=0.659,
         rt_prop=0.146,
         prob_connect=0.5,
@@ -91,7 +94,7 @@ class TransportTransform(Model):
         """
 
         self.num_agents = num_agents
-        self.el_prop = el_prop
+        self.el_prop = el_prop              #TODO: find out if I can set this by readin in the data from CSV via pandas dataframe
         self.cp_prop = cp_prop
         self.rt_prop = rt_prop
         self.prob_connect = prob_connect
@@ -124,7 +127,7 @@ class TransportTransform(Model):
         for i in range(self.num_agents):
             if i < self.num_agents * self.el_prop:
                 group = "EL"
-                ice_mean = self.el_ice_mean
+                ice_mean = self.el_ice_mean         #TODO find a more optimized way to read in mean and SD, esp. when there are more modes
                 ice_std = self.el_ice_std
                 pr_mean = self.el_pr_mean
                 pr_std = self.el_pr_std
@@ -136,13 +139,10 @@ class TransportTransform(Model):
                 pr_std = self.cp_pr_std
             else:
                 group = "RT"
-                ice_mean = np.random.uniform(0, 10)
+                ice_mean = np.random.uniform(0, 10)             #TODO: change this to actual data
                 ice_std = 1
                 pr_mean = np.random.uniform(0, 10)
                 pr_std = 1
-
-            agent = UserAgent(i, self, group, ice_mean, ice_std, pr_mean, pr_std)
-            self
 
             agent = UserAgent(i, self, group)
             self.schedule.add(agent)
@@ -154,7 +154,7 @@ class TransportTransform(Model):
                 if agent != other:
                     if agent.group == other.group:
                         if random.random() < self.prob_connect:
-                            self.grid.add_edge(agent, other)
+                            self.grid.add_edge(agent, other)            #TODO: add weight generation
                     else:
                         if random.random() < self.prob_connect * 0.1:
                             self.grid.add_edge(agent, other)
@@ -162,9 +162,28 @@ class TransportTransform(Model):
     def step(self):
         self.schedule.step()
 
+def calculate_weight(self, modes=["ICE", "PT"]):            #TODO: add this when the edges are created TODO: make this flexible for the number of modes
+    """
+    Calculates the weight of the connections between the agents based on the Euclidean distance
+    between their attitudes towards the given transportation modes.
+
+    Args:
+        modes (list of str): The transportation modes to include in the calculation.
+
+    Returns:
+        float: The total weight of the connections between the agents.
+    """
+    total_weight = 0
+    for agent in self.schedule.agents:
+        for neighbor, edge in self.grid.get_neighbors(agent, include_center=False, include_edges=True):
+            diffs = [abs(getattr(agent, mode) - getattr(neighbor, mode)) for mode in modes]
+            weight = np.sqrt(sum([diff ** 2 for diff in diffs]))
+            total_weight += weight
+    return total_weight
+
 
 # Example usage:
-model = TransportTransform(1000)
+model = TransportTransform(1000)                #TODO: add that config is loade when the model is initialized
 model.visualization.port = 8521  # Set the port for the web server
 model.visualization.launch()  # Launch the web server
 for i in range(10):
