@@ -30,7 +30,11 @@ With this project, the transformation towards a circular transportation systems 
 └── script             <- Source code for this project (HW)
 
 ```
+## Binder
+TODO: add binder https://mybinder.org/
 
+## Archive
+Add Zenodo badge for archiving
 
 ## License
 
