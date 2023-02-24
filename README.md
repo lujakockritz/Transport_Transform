@@ -4,6 +4,9 @@ Version 0.1.0
 
 With this project, the transformation towards a circular transportation systems is modelled using an agent-based model.
 
+Currently, the code is in the following file: one_file-initial version.py
+Later, I will split up the code into separate files to have classes, model run and config separated.
+
 
 ## Project organization
 
