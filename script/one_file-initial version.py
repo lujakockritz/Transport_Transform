@@ -8,11 +8,13 @@ import numpy as np
 from scipy.stats import truncnorm
 
 """
-This script creates and agent-based model
+This script creates an agent-based model where user agents have an attitude towards varios transportation modes. 
+The model is initialized as a network where connection between group memebers are more likely than across group members.
+
 """
 
 class UserAgent(Agent):
-    def __init__(self, unique_id, model, group, ice_mean, ice_std, pr_mean, pr_std):
+    def __init__(self, unique_id, model, group, ice_mean, ice_std, pr_mean, pr_std):  #TODO remove means and std and move them to config
         """
         Create a new user agent.
 
@@ -41,7 +43,7 @@ class UserAgent(Agent):
 
     def truncated_normal(self, mean, std, lower_bound, upper_bound):
         """
-        Generate a truncated normal random variable.
+        Generate a truncated normal random variable. Truncated normal distribution is chosen because #TODO add arguments 
 
         Args:
             mean (float): Mean of the truncated normal distribution.
