@@ -1,3 +1,4 @@
+#%%
 import pandas as pd
 #%%
 "Model settings/parameters"
@@ -24,6 +25,9 @@ EL_share = 0.195
 CP_share = 0.659
 RT_share = 0.146
 
+#%%
 "Read in data on attitudes per cluster from Wolf et al. (2019)"
-clusterData = pd.read_csv('Cluster_data2.CSV', delimiter=';', index_col = [0], header=[0,1])
-"access data in this format: clusterData.loc['ICE',('EL','Mean')]"
+clusterData = pd.read_csv("../data/processed/Cluster_data.CSV", delimiter=';', index_col = [0], header=[0,1])
+"access data in this format: "
+clusterData.loc['ICE',('EL','Mean')]#"
+# %%

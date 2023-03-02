@@ -1,4 +1,7 @@
+#%%
 import random
+import sys
+import os
 from mesa import Agent, Model
 from mesa.time import RandomActivation
 from mesa.space import NetworkGrid
@@ -6,6 +9,34 @@ from mesa.visualization.modules import NetworkModule
 from mesa.visualization.ModularVisualization import ModularServer
 import numpy as np
 from scipy.stats import truncnorm
+#%%
+import pandas as pd
+#%%
+# Add the parent directory to the system path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+# Import the config module from the processed subfolder
+import config
+#%%
+script_dir = os.path.dirname( __file__ )
+processed_data_dir = os.path.join( script_dir, os.pardir, 'config' )
+sys.path.append( processed_data_dir )
+import config
+
+#Group data
+el_prop = 0.195              #TODO: add this to a config section
+cp_prop = 0.659
+rt_prop = 0.146
+"Read in data on attitudes per cluster from Wolf et al. (2019)"
+clusterData = pd.read_csv("../data/processed/Cluster_data.CSV", delimiter=';', index_col = [0], header=[0,1])
+
+
+#Parameters
+prob_connect = 0.5
+num_agents = 10
+
+
+#%%
 
 """
 This script creates an agent-based model where user agents have an attitude towards varios transportation modes. 
@@ -16,9 +47,9 @@ The model is initialized as a network where connections between group memebers a
 Weights between agents are set based on similarity in their attitude using Euclidian Distance.
  
 """
-
+#%%
 class UserAgent(Agent):
-    def __init__(self, unique_id, model, group, ice_mean, ice_std, pr_mean, pr_std):  #TODO remove means and std and move them to config
+    def __init__(self, unique_id, model, group):  #TODO remove means and std and move them to config
         """
         Create a new user agent.
 
@@ -26,17 +57,14 @@ class UserAgent(Agent):
             unique_id (int): Unique identifier for the agent.
             model (TransportTransform): The model that the agent belongs to.
             group (str): The group that the agent belongs to.
-            ice_mean (float): Mean of the truncated normal distribution for ICE attitude.
-            ice_std (float): Standard deviation of the truncated normal distribution for ICE attitude.
-            pr_mean (float): Mean of the truncated normal distribution for PR attitude.
-            pr_std (float): Standard deviation of the truncated normal distribution for PR attitude.
+
         """
         super().__init__(unique_id, model)
         self.group = group
 
         # Initialize attitudes for transportation modes
-        self.ice_attitude = self.truncated_normal(ice_mean, ice_std, 0, 10)         #TODO: check if bounds are correct
-        self.pr_attitude = self.truncated_normal(pr_mean, pr_std, 0, 10)
+        self.ice_attitude = self.truncated_normal(clusterData.loc['ICE',(self.group,'Mean')], clusterData.loc['ICE',(self.group,'SD')], 0, 10)         #TODO: check if bounds are correct
+        self.pt_attitude = self.truncated_normal(clusterData.loc['PT',(self.group,'Mean')], clusterData.loc['PT',(self.group,'SD')], 0, 10)  
 
     def step(self):
         """
@@ -62,24 +90,9 @@ class UserAgent(Agent):
             (lower_bound - mean) / std, (upper_bound - mean) / std, loc=mean, scale=std
         )
 
-
+#%%
 class TransportTransform(Model):
-    def __init__(
-        self,
-        num_agents,
-        el_prop=0.195,              #TODO: add this to a config section
-        cp_prop=0.659,
-        rt_prop=0.146,
-        prob_connect=0.5,
-        el_ice_mean=4.56,
-        el_ice_std=0.89,
-        el_pr_mean=4.2,
-        el_pr_std=1,
-        cp_ice_mean=4.18,
-        cp_ice_std=0.94,
-        cp_pr_mean=3.45,
-        cp_pr_std=0.98,
-    ):
+    def __init__(self):
         """
         Create a new transport transformation model.
 
@@ -104,14 +117,6 @@ class TransportTransform(Model):
         self.cp_prop = cp_prop
         self.rt_prop = rt_prop
         self.prob_connect = prob_connect
-        self.el_ice_mean = el_ice_mean
-        self.el_ice_std = el_ice_std
-        self.el_pr_mean = el_pr_mean
-        self.el_pr_std = el_pr_std
-        self.cp_ice_mean = cp_ice_mean
-        self.cp_ice_std = cp_ice_std
-        self.cp_pr_mean = cp_pr_mean
-        self.cp_pr_std = cp_pr_std
 
         self.schedule = RandomActivation(self)
         self.grid = NetworkGrid({})
@@ -126,29 +131,18 @@ class TransportTransform(Model):
         Create agents for the simulation.
 
         Assigns each agent to a group based on the proportions specified in the constructor.
-        Generates ICE and PR attitudes for each agent from truncated normal distributions with
-        means and standard deviations specific to their group. Creates edges between agents based
-        on their group and the probability of connection specified in the constructor.
+        Creates edges between agents based on their group and the probability of connection 
+        specified in the constructor.
         """
         for i in range(self.num_agents):
             if i < self.num_agents * self.el_prop:
                 group = "EL"
-                ice_mean = self.el_ice_mean         #TODO find a more optimized way to read in mean and SD, esp. when there are more modes
-                ice_std = self.el_ice_std
-                pr_mean = self.el_pr_mean
-                pr_std = self.el_pr_std
+
             elif i < self.num_agents * (self.el_prop + self.cp_prop):
                 group = "CP"
-                ice_mean = self.cp_ice_mean
-                ice_std = self.cp_ice_std
-                pr_mean = self.cp_pr_mean
-                pr_std = self.cp_pr_std
+
             else:
                 group = "RT"
-                ice_mean = np.random.uniform(0, 10)             #TODO: change this to actual data
-                ice_std = 1
-                pr_mean = np.random.uniform(0, 10)
-                pr_std = 1
 
             agent = UserAgent(i, self, group)
             self.schedule.add(agent)
@@ -167,6 +161,7 @@ class TransportTransform(Model):
 
     def step(self):
         self.schedule.step()
+#%%
 
 def calculate_weight(self, modes=["ICE", "PT"]):            #TODO: add this when the edges are created TODO: make this flexible for the number of modes
     """
@@ -194,3 +189,4 @@ model.visualization.port = 8521  # Set the port for the web server
 model.visualization.launch()  # Launch the web server
 for i in range(10):
     model.step()
+# %%
