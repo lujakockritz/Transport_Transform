@@ -3,6 +3,8 @@ import pandas as pd
 #%%
 "Network settings"
 num_agents = 10
+same_prob_connect = 0.5
+other_prob_connect = 0.1
 prob_connect = 0.5             #probabaility of connecting when in the same group
 
 "Model settings/parameters"

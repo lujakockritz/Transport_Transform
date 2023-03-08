@@ -34,6 +34,7 @@ The model is initialized as a network where connections between group memebers a
 Weights between agents are set based on similarity in their attitude using Euclidian Distance.
 """
 
+#%%
 class UserAgent(Agent):
     def __init__(self, unique_id, model, group):
        """
@@ -87,7 +88,8 @@ class TransportModel(Model):
             prob_connect (float): Probability of an edge between two agents being created.
         """
         self.num_agents = N
-        self.prob_connect = config.str_experience
+        self.same_prob_connect = 0.5 #config.same_prob_connect  #TODO check why this import does not work
+        self.other_prob_connect = 0.1 #config.other_prob_connect
         self.schedule = RandomActivation(self)
         self.G = nx.Graph()
         self.G.add_nodes_from(range(0,self.num_agents))
@@ -116,19 +118,17 @@ class TransportModel(Model):
             self.schedule.add(agent)
             #self.grid.place_agent(agent, i)
 
-        #odes = self.extract_attitudes(self.schedule.agents[1]) #TODO add other modes
-
         # Create edges between agents
         for agent in range(self.num_agents):
             for other in range(self.num_agents):
                 if agent != other:
                     if self.schedule.agents[agent].group == self.schedule.agents[other].group: 
-                        if random.random() < self.prob_connect:
+                        if random.random() < self.same_prob_connect:
                             weight = self.calculate_weight(agent, other, modes)
                             self.G.add_edge(agent, other, weight = weight)            #TODO check that weight is saved correctly
                             print("connected in-group between " + str(agent) + " and " + str(other) + " our weight is " + str(weight))
                     else:
-                        if random.random() < (self.prob_connect * 0.1):
+                        if random.random() < (self.other_prob_connect):
                             weight = self.calculate_weight(agent, other, modes)
                             self.G.add_edge(agent, other, weight = weight)
                             print("connected between-group between " + str(agent) + " and " + str(other) + " our weight is " + str(weight))
@@ -165,8 +165,8 @@ class TransportModel(Model):
 
 
 
-empty_model = TransportModel(10)
-empty_model.step()
+#empty_model = TransportModel(10)
+#empty_model.step()
 
 
 
