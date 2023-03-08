@@ -82,12 +82,10 @@ class TransportModel(Model):
         self.num_agents = N
         self.prob_connect = config.str_experience
         self.schedule = RandomActivation(self)
-        #self.G = nx.erdos_renyi_graph(n=self.num_agents, p=prob)
         self.G = nx.Graph()
-        #self.G.add_nodes_from(range(0,self.num_agents))
+        self.G.add_nodes_from(range(0,self.num_agents))
         self.grid = NetworkGrid(self.G)
         self.create_agents()
-        #self.calculate_weight()
         
     def create_agents(self):
         """
@@ -99,28 +97,26 @@ class TransportModel(Model):
         """
         for i in range(self.num_agents):
             if i < self.num_agents * config.EL_share:
-                self.G.add_node(i, group="EL")
+                self.G.add_node(i)
                 group="EL"
 
             elif i < self.num_agents * (config.EL_share + config.CP_share):
-                self.G.add_node(i, group = "CP")
+                self.G.add_node(i)
                 group = "CP"
 
             else:
-                self.G.add_node(i, group = "RT")
+                self.G.add_node(i)
                 group = "RT"
 
             agent = UserAgent(i, self, group)
             self.schedule.add(agent)
-            #self.G.add_node(i)
             #self.grid.place_agent(agent, i)
 
-         # Create edges between agents
-        #all_modes = [ice_attitude]
+        # Create edges between agents
         for agent in range(self.num_agents):
             for other in range(self.num_agents):
                 if agent != other:
-                    if self.G.nodes[agent]["group"] == self.G.nodes[other]["group"]: #agent.group == other.group:
+                    if self.schedule.agents[agent].group == self.schedule.agents[other].group: #agent.group == other.group:
                         if random.random() < self.prob_connect:
                             weight = self.calculate_weight(agent, other)
                             self.G.add_edge(agent, other, weight = weight)            #TODO: add weight generation
@@ -131,14 +127,7 @@ class TransportModel(Model):
                             self.G.add_edge(agent, other, weight = weight)
                             print("connected between-group between " + str(agent) + " and " + str(other) + " our weight is " + str(weight))
     
-    def calculate_weight(self, i, j):            #TODO: add this when the edges are created TODO: make this flexible for the number of modes
-        
-        #agent = UserAgent(i, self)
-        #neighbor = UserAgent(j, self)
-        total_weight = self.G.nodes[i].ice_attitude - self.G.nodes[j].ice_attitude
-        total_weight = 0
-        return total_weight
-    
+    def calculate_weight(self, agent, neighbor):            #TODO: add this when the edges are created TODO: make this flexible for the number of modes
         """
         Calculates the weight of the connections between the agents based on the Euclidean distance
         between their attitudes towards the given transportation modes.
@@ -149,19 +138,14 @@ class TransportModel(Model):
         Returns:
             float: The total weight of the connections between the agents.
         """
+
+        modes = ["ice_attitude"] #TODO add other modes
+        diffs = [abs(getattr(self.schedule.agents[agent], mode) - getattr(self.schedule.agents[neighbor], mode)) for mode in modes]
+        weight = np.sqrt(sum([diff ** 2 for diff in diffs]))
+                
+        return weight
     
-        #total_weight = 0
-        #diffs = [abs(getattr(agent, mode) - getattr(neighbor, mode)) for mode in modes]
-        #weight = np.sqrt(sum([diff ** 2 for diff in diffs]))
-        #total_weight += weight
-        #for agent in range(self.num_agents):
-            
-            #neighbors = self.grid.get_neighbors(agent.pos, include_center=False)
-            #for neighbor in self.grid.get_neighbors(agent.pos, include_center=False):
-                #diffs = [abs(getattr(agent, mode) - getattr(neighbor, mode)) for mode in modes]
-                #weight = np.sqrt(sum([diff ** 2 for diff in diffs]))
-                #total_weight += weight
-                #neighbors.append(neighbor)
+        
 
     #def get_neighbors(self, agent):    
         #neighbors = self.G[agent] #get the neighbors
