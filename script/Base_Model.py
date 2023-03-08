@@ -2,7 +2,6 @@
 import sys
 import os
 import random
-#import pandas as pd
 import numpy as np
 import networkx as nx
 from scipy.stats import truncnorm
@@ -19,8 +18,12 @@ script_dir = os.path.dirname( __file__ )
 processed_data_dir = os.path.join( script_dir, os.pardir, 'config' )
 sys.path.append( processed_data_dir )
 
-# Import the config module from the processed subfolder
+# Import the config module from the processed subfolder and save all mode attributes for use later on
 import config
+clusterData = config.clusterData
+modes = []
+for mode in clusterData.index.values:
+    modes.append(mode.lower() + '_attitude')
 
 """
 This script creates an agent-based model where user agents have an attitude towards varios transportation modes. 
@@ -44,9 +47,12 @@ class UserAgent(Agent):
         """
        super().__init__(unique_id, model)
        self.group = group 
-       self.ice_attitude = self.truncated_normal(config.clusterData.loc['ICE',(self.group,'Mean')], config.clusterData.loc['ICE',(self.group,'SD')], 0, 10)         #TODO: check if bounds are correct
-          
-    def truncated_normal(self, mean, std, lower_bound, upper_bound):
+       
+       for mode in clusterData.index.values:
+            attitude = self.truncated_normal(clusterData.loc[mode,(self.group,'Mean')], clusterData.loc[mode,(self.group,'SD')], 0, 10)         #TODO: check if bounds are correct
+            setattr(self, mode.lower() + '_attitude', attitude)
+
+    def truncated_normal(self, mean, std, lower_bound, upper_bound):            #Consider moving to an import file
         """
         Generate a truncated normal random variable. Truncated normal distribution is chosen because #TODO add arguments 
 
@@ -67,7 +73,8 @@ class UserAgent(Agent):
         """
         Update the agent's state.
         """
-        print("Agent " + str(self.unique_id) + "  in group: " + self.group + " my ICE attitude: " + str(self.ice_attitude))
+        #print("Agent " + str(self.unique_id) + "  in group: " + self.group + " my ICE attitude: " + str(self.ice_attitude))
+        pass
 
 
 class TransportModel(Model):
@@ -97,37 +104,36 @@ class TransportModel(Model):
         """
         for i in range(self.num_agents):
             if i < self.num_agents * config.EL_share:
-                self.G.add_node(i)
                 group="EL"
 
             elif i < self.num_agents * (config.EL_share + config.CP_share):
-                self.G.add_node(i)
                 group = "CP"
 
             else:
-                self.G.add_node(i)
                 group = "RT"
 
             agent = UserAgent(i, self, group)
             self.schedule.add(agent)
             #self.grid.place_agent(agent, i)
 
+        #odes = self.extract_attitudes(self.schedule.agents[1]) #TODO add other modes
+
         # Create edges between agents
         for agent in range(self.num_agents):
             for other in range(self.num_agents):
                 if agent != other:
-                    if self.schedule.agents[agent].group == self.schedule.agents[other].group: #agent.group == other.group:
+                    if self.schedule.agents[agent].group == self.schedule.agents[other].group: 
                         if random.random() < self.prob_connect:
-                            weight = self.calculate_weight(agent, other)
-                            self.G.add_edge(agent, other, weight = weight)            #TODO: add weight generation
+                            weight = self.calculate_weight(agent, other, modes)
+                            self.G.add_edge(agent, other, weight = weight)            #TODO check that weight is saved correctly
                             print("connected in-group between " + str(agent) + " and " + str(other) + " our weight is " + str(weight))
                     else:
                         if random.random() < (self.prob_connect * 0.1):
-                            weight = self.calculate_weight(agent, other)
+                            weight = self.calculate_weight(agent, other, modes)
                             self.G.add_edge(agent, other, weight = weight)
                             print("connected between-group between " + str(agent) + " and " + str(other) + " our weight is " + str(weight))
     
-    def calculate_weight(self, agent, neighbor):            #TODO: add this when the edges are created TODO: make this flexible for the number of modes
+    def calculate_weight(self, agent, neighbor, modes):            
         """
         Calculates the weight of the connections between the agents based on the Euclidean distance
         between their attitudes towards the given transportation modes.
@@ -139,13 +145,11 @@ class TransportModel(Model):
             float: The total weight of the connections between the agents.
         """
 
-        modes = ["ice_attitude"] #TODO add other modes
         diffs = [abs(getattr(self.schedule.agents[agent], mode) - getattr(self.schedule.agents[neighbor], mode)) for mode in modes]
         weight = np.sqrt(sum([diff ** 2 for diff in diffs]))
                 
-        return weight
-    
-        
+        return weight           #TODO consider revising this fucntion to make the weights more readable/understandable
+          
 
     #def get_neighbors(self, agent):    
         #neighbors = self.G[agent] #get the neighbors
