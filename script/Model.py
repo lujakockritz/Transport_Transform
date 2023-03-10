@@ -75,11 +75,21 @@ class UserAgent(Agent):
         Update the agent's state.
         """
         #print("Agent " + str(self.unique_id) + "  in group: " + self.group + " my ICE attitude: " + str(self.ice_attitude))
+        
+        def social_learning():
+            pass
+    
+        def individual_learning():
+            pass
+
+        def update_attitude():
+            pass
+        
         pass
 
 
 class TransportModel(Model):
-    def __init__(self, N):
+    def __init__(self, num_agents = 10):
         """
         Create a new transport transformation model.
 
@@ -87,16 +97,20 @@ class TransportModel(Model):
             num_agents (int): Number of agents in the model.
             prob_connect (float): Probability of an edge between two agents being created.
         """
-        self.num_agents = N
+        self.num_agents = num_agents
         self.same_prob_connect = 0.5 #config.same_prob_connect  #TODO check why this import does not work
         self.other_prob_connect = 0.1 #config.other_prob_connect
         self.schedule = RandomActivation(self)
         self.G = nx.Graph()
         self.G.add_nodes_from(range(0,self.num_agents))
         self.grid = NetworkGrid(self.G)
-        self.create_agents()
-        
-    def create_agents(self):
+        #self.datacollector = mesa.DataCollector(
+        #    model_reporters={"Gini": compute_gini},
+        #    agent_reporters={"Wealth": lambda _: _.wealth},
+        #)
+        self.create_links()    
+    
+    def create_links(self):
         """
         Create agents for the simulation.
 
@@ -116,12 +130,13 @@ class TransportModel(Model):
 
             agent = UserAgent(i, self, group)
             self.schedule.add(agent)
-            #self.grid.place_agent(agent, i)
+            self.grid.place_agent(agent, i)
+        
 
         # Create edges between agents
         for agent in range(self.num_agents):
             for other in range(self.num_agents):
-                if agent != other:
+                if (agent != other) and not (nx.has_path(self.G, agent, other)):
                     if self.schedule.agents[agent].group == self.schedule.agents[other].group: 
                         if random.random() < self.same_prob_connect:
                             weight = self.calculate_weight(agent, other, modes)
@@ -132,6 +147,9 @@ class TransportModel(Model):
                             weight = self.calculate_weight(agent, other, modes)
                             self.G.add_edge(agent, other, weight = weight)
                             print("connected between-group between " + str(agent) + " and " + str(other) + " our weight is " + str(weight))
+    
+        self.running = True
+        #self.datacollector.collect(self)
     
     def calculate_weight(self, agent, neighbor, modes):            
         """
@@ -149,7 +167,7 @@ class TransportModel(Model):
         weight = np.sqrt(sum([diff ** 2 for diff in diffs]))
                 
         return weight           #TODO consider revising this fucntion to make the weights more readable/understandable
-          
+     
 
     #def get_neighbors(self, agent):    
         #neighbors = self.G[agent] #get the neighbors
@@ -167,6 +185,7 @@ class TransportModel(Model):
 
 #empty_model = TransportModel(10)
 #empty_model.step()
+#for line in ((getattr(empty_model.schedule.agents[1], mode)) for mode in modes) print(line)
 
 
 

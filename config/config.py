@@ -1,5 +1,6 @@
 #%%
 import pandas as pd
+import csv
 #%%
 "Network settings"
 num_agents = 10
@@ -36,4 +37,29 @@ RT_share = 0.146
 clusterData = pd.read_csv("../data/processed/Cluster_data.CSV", delimiter=';', index_col = [0], header=[0,1])
 "access data in this format: "
 #clusterData.loc['ICE',('EL','Mean')]#"
+
+##reader = csv.DictReader(open('State_data.csv'))
+
+#d = {}
+#for row in reader:
+##   k, v = row
+#   d[k] = v
+
+#dictobj = next(reader) 
+
+# %%
+#with open('State_data.csv', mode='r') as infile:
+#    reader = csv.reader(infile)
+#    with open('State_data_new.csv', mode='w') as outfile:
+#        writer = csv.writer(outfile)
+#        mydict = {rows[0]:rows[1] for rows in reader}
+# %%
+
+# opening the file using "with"
+# statement
+#filename = 'State_data.csv'
+#with open(filename, 'r') as data:
+##  for line in csv.DictReader(data):
+#      print(line)
+
 # %%
