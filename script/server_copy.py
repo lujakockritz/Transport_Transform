@@ -11,11 +11,11 @@ def network_portrayal(G):
     portrayal["nodes"] = [
         {
             "id": node_id,
-            "size": 3 if agents else 1,
-            "color": "#CC0000" if not agents or agents[0].wealth == 0 else "#007959",
+            "size": 3, #if agents else 1,
+            "color": "#CC0000", #if not agents or agents[0].wealth == 0 else "#007959",
             "label": None
-            if not agents
-            else f"Agent:{agents[0].unique_id} Wealth:{agents[0].wealth}",
+            #if not agents
+            #else f"Agent:{agents[0].unique_id} Wealth:{agents[0].wealth}",
         }
         for (node_id, agents) in G.nodes.data("agent")
     ]
@@ -29,9 +29,9 @@ def network_portrayal(G):
 
 
 grid = mesa.visualization.NetworkModule(network_portrayal, 500, 500)
-chart = mesa.visualization.ChartModule(
-    [{"Label": "Gini", "Color": "Black"}], data_collector_name="datacollector"
-)
+#chart = mesa.visualization.ChartModule(
+#    [{"Label": "Gini", "Color": "Black"}], data_collector_name="datacollector"
+#)
 
 model_params = {
     "num_agents": mesa.visualization.Slider(
@@ -46,8 +46,8 @@ model_params = {
 }
 
 server = mesa.visualization.ModularServer(
-    TransportModel, [grid], "Money Model", model_params
+    TransportModel, [grid], "Transport Model", model_params
 )
-server.port = 8531
+server.port = 8532
 server.launch()
 # %%
